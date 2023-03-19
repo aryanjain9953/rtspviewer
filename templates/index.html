@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>RTSP Viewer</title>
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      h1 {
+        color: #333;
+        text-align: center;
+      }
+      form {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+      label {
+        margin-bottom: 10px;
+      }
+      input[type="text"] {
+        width: 100%;
+        padding: 5px;
+        margin-bottom: 15px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+      button {
+        padding: 5px 10px;
+        margin: 5px;
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+      button:hover {
+        background-color: #0056b3;
+      }
+      .controls {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 20px;
+      }
+      img {
+        display: block;
+        max-width: 100%;
+        height: auto;
+        margin: 0 auto;
+      }
+
+      select {
+        width: 100%;
+        padding: 5px;
+        margin-bottom: 15px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+      }
+
+
+    </style>
+</head>
+<body>
+<h1>RTSP Viewer</h1>
+<form onsubmit="event.preventDefault(); startStream();">
+    <label for="brand">NVR Brand:</label>
+    <select id="brand" name="brand">
+        <option value="Hickvision">Hickvision</option>
+        <option value="CP Plus">CP Plus</option>
+        <option value="Uniview">Uniview</option>
+        <option value="Dahua">Dahua</option>
+        <option value="Securus">Securus</option>
+        <option value="Securens">Securens</option>
+    </select>
+    <label for="ip">IP:</label>
+    <input id="ip" name="ip" required type="text"/>
+    <label for="username">Username:</label>
+    <input id="username" name="username" required type="text"/>
+    <label for="password">Password:</label>
+    <input id="password" name="password" required type="password"/>
+    <label for="rtsp_port">RTSP Port:</label>
+    <input id="rtsp_port" name="rtsp_port" required type="number"/>
+    <button type="submit">Start Stream</button>
+</form>
+<div class="controls">
+    <button onclick="pauseStream()">Pause Stream</button>
+    <button onclick="resumeStream()">Resume Stream</button>
+    <button onclick="startRecording()">Start Recording</button>
+    <button onclick="stopRecording()">Stop Recording</button>
+    <button onclick="downloadRecording()">Download Recording</button>
+</div>
+<img alt="RTSP Stream" src="{{ url_for('video_feed') }}"/>
+<script>
+      var video = document.getElementById("video");
+      var stream_url = null;
+
+      function pauseStream() {
+        fetch("/pause_stream", { method: "POST" });
+      }
+
+      function resumeStream() {
+        fetch("/resume_stream", { method: "POST" });
+      }
+
+      function startRecording() {
+        fetch("/start_recording", { method: "POST" });
+      }
+
+      function stopRecording() {
+        fetch("/stop_recording", { method: "POST" });
+      }
+
+      function downloadRecording() {
+        window.location.href = "/download_recording";
+      }
+
+      function startStream() {
+  var brand = document.getElementById("brand").value;
+  var ip = document.getElementById("ip").value;
+  var username = document.getElementById("username").value;
+  var password = document.getElementById("password").value;
+  var rtsp_port = document.getElementById("rtsp_port").value;
+
+  fetch("/start_stream", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+    body: new URLSearchParams({
+      brand: brand,
+      ip: ip,
+      username: username,
+      password: password,
+      rtsp_port: rtsp_port,
+    }),
+  })
+    .then(function () {
+            var streamUrl = window.location.origin + "/stream";
+            if (Hls.isSupported()) {
+              var hls = new Hls();
+              hls.loadSource(streamUrl);
+              hls.attachMedia(video);
+              hls.on(Hls.Events.MANIFEST_PARSED, function() {
+                video.play();
+              });
+            } else if (video.canPlayType("application/vnd.apple.mpegurl")) {
+              video.src = streamUrl;
+              video.addEventListener("loadedmetadata", function() {
+                video.play();
+              });
+            }
+          });
+      }
+
+
+</script>
+</body>
+</html>

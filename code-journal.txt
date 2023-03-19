@@ -1,0 +1,50 @@
+Title: RTSP Viewer Saga
+
+Author: Aryan Jain
+
+Date: March 18, 2023
+
+Introduction:
+
+In the cutthroat world of video solutions, an addition of a brand agnostic RTSP viewer can be a game-changer.
+I took it upon myself to develop a that viewer.
+Ours is the kind of product that could be like a jaguar, ruthlessly thrashing the competition and winning all the contracts.
+Unfortunately, my incompetent engineering team has been holding us back, leaving our jaguar as a baby-backed bitch, struggling to survive.
+
+Despite my team's constant lies, excuses and overall retardedness, I persevered, and with my grit and determination,
+I overcame numerous challenges to bring this feature to life.
+
+
+Phase 1: Basic RTSP Stream Display
+
+I started by implementing a basic Flask app to display an RTSP stream using the OpenCV library. It worked, but there was a crucial oversight – the app was running on the default Flask port (5000), limiting its compatibility.
+
+Next, I added the ability for users to submit an RTSP URL, play, pause, stop, record, stop recording, and download the recorded video in MP4 format. The engineering team, as usual, was slow to catch on and couldn't provide a working solution.
+
+Rectification: I stepped in and implemented the necessary changes to the code, creating a functional and user-friendly interface that met the requirements.
+
+Phase 2: Video Format and Compatibility Issues
+
+Despite my efforts, the downloaded MP4 recording was unplayable.
+
+Rectification: I delved deeper into the issue and discovered that the video writer was improperly configured. I fixed it, ensuring that the downloaded video was playable and compatible with various media players.
+
+Phase 3: Stream Pause and Resume Functionality
+
+When I tried to pause and resume the stream, Python terminated without any logs.
+
+Rectification: I created a custom VideoStream class to handle the underlying VideoCapture object's state and synchronization. This prevented Python from terminating and allowed users to pause and resume the stream seamlessly.
+
+Phase 4: Memory and RAM Usage Analysis
+
+After successfully implementing the app's functionality, I turned my attention to its memory and RAM usage. I needed to ensure that the app was efficient and wouldn't cause performance issues.
+
+Rectification: I used the psutil library to measure the memory usage of the Flask app. This allowed me to monitor the app's performance and optimize its resource consumption as needed.
+
+Conclusion:
+
+My journey in developing this revolutionary RTSP streaming app has been filled with obstacles and setbacks, primarily due to my engineering team's incompetence. But, with my relentless determination and technical prowess, I overcame the challenges and built an app capable of dominating the video solutions industry.
+
+The jaguar may have been caged, but I've broken one chain, and now it's ready to pounce on the competition.
+
+In the end, the lessons learned from this project have been invaluable, and I'm confident that my revolutionary app will make a significant impact in the video solutions industry.

@@ -2,6 +2,7 @@ import os
 import threading
 import time
 
+
 import cv2
 import ffmpeg
 from flask import Flask, render_template, Response, request, send_from_directory
@@ -81,58 +82,36 @@ def index():
     return render_template('index.html')
 
 
-def construct_rtsp_url(brand, ip, username, password, rtsp_port, channel):
-    if brand == "Hickvision":
-        return f"rtsp://{username}:{password}@{ip}:{rtsp_port}/Streaming/Channels/{channel}"
-    elif brand == "CP Plus":
-        return f"rtsp://{username}:{password}@{ip}:{rtsp_port}/cam/realmonitor?channel={channel}&subtype=0"
-    elif brand == "Uniview":
-        return f"rtsp://{username}:{password}@{ip}:{rtsp_port}/unicast/c{channel}/s0/live"
-    elif brand == "Dahua":
-        return f"rtsp://{username}:{password}@{ip}:{rtsp_port}/cam/realmonitor?channel={channel}&subtype=0"
-    elif brand == "Securus":
-        # Replace this with the appropriate RTSP URL format for Securus
-        return f"rtsp://{username}:{password}@{ip}:{rtsp_port}/some_path/{channel}"
-    elif brand == "Securens":
-        # Replace this with the appropriate RTSP URL format for Securens
-        return f"rtsp://{username}:{password}@{ip}:{rtsp_port}/some_path/{channel}"
-    else:
-        return None
-
-
 @app.route('/stream')
 def video_feed():
     return Response(generate(), mimetype='multipart/x-mixed-replace; boundary=frame')
 
 
+@app.route('/icons/<icon_name>')
+def get_icon(icon_name):
+    icons = {
+        'pause': 'icon_pause.png',
+        'resume': 'icon_resume.png',
+        'record': 'icon_record.png',
+        'download': 'icon_download.png',
+    }
+    return send_from_directory('icons', icons[icon_name], as_attachment=True)
+
+
+@app.route('/embed.html')
+def embed():
+    return render_template('embed.html')
+
+
 @app.route('/start_stream', methods=['POST'])
 def start_stream():
     global vs, frame_size, rtsp_url
-    brand = request.form['brand']
-    ip = request.form['ip']
-    username = request.form['username']
-    password = request.form['password']
-    rtsp_port = request.form['rtsp_port']
-
-    for channel in range(1, 10000):
-        channel_str = f"{channel:04d}"
-        rtsp_url = construct_rtsp_url(brand, ip, username, password, rtsp_port, channel_str)
-        print(f"Trying RTSP URL: {rtsp_url}")
-
-        vs = VideoStream(rtsp_url)
-        ret, _ = vs.read()
-        if ret:
-            print(f"Working RTSP URL: {rtsp_url}")
-            break
-        else:
-            print(f"Failed RTSP URL: {rtsp_url}")
-            vs = None
-
+    rtsp_url = request.form['rtsp_url']
+    vs = VideoStream(rtsp_url)
     frame_width = int(vs.capture.get(cv2.CAP_PROP_FRAME_WIDTH))
     frame_height = int(vs.capture.get(cv2.CAP_PROP_FRAME_HEIGHT))
     frame_size = (frame_width, frame_height)
     return ('', 204)
-
 
 @app.route('/pause_stream', methods=['POST'])
 def pause_stream():
@@ -141,13 +120,13 @@ def pause_stream():
         vs.pause()
     return ('', 204)
 
-
 @app.route('/resume_stream', methods=['POST'])
 def resume_stream():
     global vs
     if vs:
         vs.resume()
     return ('', 204)
+
 
 
 @app.route('/start_recording', methods=['POST'])
@@ -160,14 +139,14 @@ def start_recording():
     fps = 20
     video_writer = (
         ffmpeg
-            .input('pipe:', format='rawvideo', pix_fmt='yuv420p', s='{}x{}'.format(*frame_size), r=fps)
-            .output(filename, format='mp4', pix_fmt='yuv420p', vcodec='libx264', r=fps, crf='23', preset='medium',
-                    movflags='faststart')
-            .overwrite_output()
-            .run_async(pipe_stdin=True)
+        .input('pipe:', format='rawvideo', pix_fmt='yuv420p', s='{}x{}'.format(*frame_size), r=fps)
+        .output(filename, format='mp4', pix_fmt='yuv420p', vcodec='libx264', r=fps, crf='23', preset='medium', movflags='faststart')
+        .overwrite_output()
+        .run_async(pipe_stdin=True)
     )
     recording = True
     return ('', 204)
+
 
 
 @app.route('/stop_recording', methods=['POST'])
